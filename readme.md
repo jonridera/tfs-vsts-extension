@@ -11,7 +11,7 @@ Use 'npm run' and one of the following shortcuts if desired. Ex: 'npm run build'
     - Executes the clean command and builds the project using tsc --build
 
     createExtension
-    - Outputs a .vsix file to your project. This is the extension to upload to Azure DevOps
+    - Outputs a .vsix file to your project. This is the extension to upload to Azure DevOps (or TFS).
 
 ## Installation requirements ##
 
