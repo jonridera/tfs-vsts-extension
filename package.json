@@ -15,8 +15,7 @@
   "scripts": {
     "clean": "rimraf ../dist",
     "build": "npm run clean && npx tsc --build",
-    "createExtension": "tfx extension create --manifest-globs vss-extension.json",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "createExtension": "tfx extension create --manifest-globs vss-extension.json"
   },
   "keywords": [],
   "author": "",
