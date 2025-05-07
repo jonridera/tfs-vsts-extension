@@ -8,8 +8,8 @@
     "author": "Kiuwan",
     "version": {
         "Major": 2,
-        "Minor": 5,
-        "Patch": 2
+        "Minor": 6,
+        "Patch": 2002
     },
     "visibility": [
         "Build",
@@ -154,7 +154,7 @@
         },
         {
             "name": "includepatterns",
-            "type": "string",
+            "type": "multiLine",
             "label": "Include patterns",
             "defaultValue": "",
             "required": false,
@@ -163,7 +163,7 @@
         },
         {
             "name": "excludepatterns",
-            "type": "string",
+            "type": "multiLine",
             "label": "Exclude patterns",
             "defaultValue": "**/src/test/**,**/__MACOSX/**,**/*.min.js,**/*.Designer.vb,**/*.designer.vb,**/*Reference.vb,**/*Service.vb,**/*Silverlight.vb,**/*.Designer.cs,**/*.designer.cs,**/*Reference.cs,**/*Service.cs,**/*Silverlight.cs,**/.*,**/Pods/BuildHeaders/**/*.h,**/Pods/Headers/**/*.h,**/node_modules/**,**/bower_components/**,**/target/**,**/bin/**,**/obj/**,**/dist/**,**/lib/**,**/bootstrap*.js,**/jquery*.js,**/umd/**,**/esm/**,**/fontawesome/**,**/respond*.js,**/toastr*.js,spcontext.js",
             "required": false,

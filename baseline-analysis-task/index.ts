@@ -8,7 +8,7 @@ import {
     downloadInstallKla, runKiuwanLocalAnalyzer, getKiuwanRetMsg,
     getLastAnalysisResults, saveKiuwanResults, uploadKiuwanResults,
     isBuild, getKlaAgentPropertiesPath, processAgentProperties
-} from 'kiuwan-common/utils';
+} from '../kiuwan-common/utils';
 //LS: change old library
 //import { debug } from 'vsts-task-tool-lib';
 import { debug } from 'azure-pipelines-task-lib/task';

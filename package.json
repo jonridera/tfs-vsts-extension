@@ -1,17 +1,30 @@
 {
-  "name": "tfs-extensiont-with-new-libraries",
-  "version": "1.0.0",
+  "name": "tfs-extension-with-new-libraries",
+  "version": "1.1.0",
   "description": "",
   "main": "index.js",
   "dependencies": {
-    "tfx-cli": "^0.7.11",
+    "azure-pipelines-task-lib": "^5.2.0",
+    "azure-pipelines-tool-lib": "^2.0.8",
+    "clipboardy": "^4.0.0",
+    "execa": "^9.5.2",
+    "tfx-cli": "^0.21.1",
+    "tls": "^0.0.1",
     "vss-web-extension-sdk": "^5.141.0"
   },
-  "devDependencies": {},
   "scripts": {
+    "clean": "rimraf ../dist",
+    "build": "npm run clean && npx tsc --build",
+    "createExtension": "tfx extension create --manifest-globs vss-extension.json",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^22.15.3",
+    "lodash": "^4.17.21",
+    "rimraf": "^6.0.1",
+    "typescript": "^5.8.3"
+  }
 }

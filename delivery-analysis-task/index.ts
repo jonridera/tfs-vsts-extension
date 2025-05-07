@@ -8,7 +8,7 @@ import {
     downloadInstallKla, runKiuwanLocalAnalyzer, getKiuwanRetMsg, 
     auditFailed, getLastAnalysisResults, saveKiuwanResults, 
     uploadKiuwanResults, noFilesToAnalyze, isBuild, getKlaAgentPropertiesPath, processAgentProperties 
-} from 'kiuwan-common/utils';
+} from '../kiuwan-common/utils';
 
 //LS: change old deprecated for the new one
 //import { _exist } from 'vsts-task-lib/internal';

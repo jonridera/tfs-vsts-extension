@@ -7,9 +7,12 @@ import ttl = require('azure-pipelines-tool-lib/tool')
 import trm = require('azure-pipelines-task-lib/toolrunner');
 import path = require('path');
 import fs = require('fs');
-import https = require('https');
+import * as https from 'https';
+import * as net from 'net';
+//import https = require('https');
 import http = require('http');
 import { Url, domainToUnicode, resolve } from 'url';
+import * as tls from 'tls';
 //LS: change old libraries for new ones
 //import { _exist } from 'vsts-task-lib/internal';
 import { _exist } from 'azure-pipelines-task-lib/internal';
@@ -211,18 +214,42 @@ export function uploadKiuwanResults(resultsPath: string, title: string, type: st
     tl.debug('[KW] Results uploaded successfully')
 }
 
+class AgentWithSocket extends https.Agent {
+    private socket: net.Socket;
+
+    constructor(socket: net.Socket) {
+        super();
+        this.socket = socket;
+    }
+
+    createConnection(options: any, callback: (err: Error | null, socket: tls.TLSSocket) => void): void {
+        const tlsSocket = tls.connect({
+            socket: this.socket,
+            servername: options.host
+        }, () => {
+            callback(null, tlsSocket);
+        });
+    }
+}
+
+
 //This function calls the API from kiuwan using a authenticated proxy
 async function callKiuwanApiHttpsProxy(options: https.RequestOptions, proxy_host, proxy_port, proxy_auth ) {
     
     tl.debug("[KW] Calling Kiuwan https API with proxy");
 
-    let k_host = options.host;  tl.debug(`[KW_LGV] [callKiuwanApiHttpsProxy] kiuwan.host: ${k_host}`);
-    let k_path = options.path;  tl.debug(`[KW_LGV] [callKiuwanApiHttpsProxy] kiuwan.path: ${k_path}`);
+    let k_host = options.host;  
+    tl.debug(`[KW_LGV] [callKiuwanApiHttpsProxy] kiuwan.host: ${k_host}`);
+    let k_path = options.path;  
+    tl.debug(`[KW_LGV] [callKiuwanApiHttpsProxy] kiuwan.path: ${k_path}`);
     //Luis Sanchez: added port as this is always https
-    let k_hostandport = k_host+":443"; tl.debug(`[KW_LGV] [callKiuwanApiHttpsProxy] kiuwan.hostandport: ${k_hostandport}`);
+    let k_hostandport = k_host+":443"; 
+    tl.debug(`[KW_LGV] [callKiuwanApiHttpsProxy] kiuwan.hostandport: ${k_hostandport}`);
     let k_auth = options.auth;  
-    let p_host = proxy_host;    tl.debug(`[KW_LGV] [callKiuwanApiHttpsProxy] proxy.host: ${p_host}`);
-    let p_port = proxy_port;    tl.debug(`[KW_LGV] [callKiuwanApiHttpsProxy] proxy.port: ${p_port}`);
+    let p_host = proxy_host;    
+    tl.debug(`[KW_LGV] [callKiuwanApiHttpsProxy] proxy.host: ${p_host}`);
+    let p_port = proxy_port;    
+    tl.debug(`[KW_LGV] [callKiuwanApiHttpsProxy] proxy.port: ${p_port}`);
     let p_auth = proxy_auth;
 
 
@@ -242,16 +269,24 @@ async function callKiuwanApiHttpsProxy(options: https.RequestOptions, proxy_host
             },
         }).on('connect', (res, socket) => {
             tl.debug ('[LS] [callKiuwanApiHttpsProxy] request info: '+ http.toString());
-            tl.debug ('[LS] [callKiuwanApiHttpsProxy] request info: '+ http.request.path);
+            //tl.debug ('[LS] [callKiuwanApiHttpsProxy] request info: '+ http.request.path);
 
             if (res.statusCode === 200) { // connected to proxy server
                 tl.debug ('[LS] [callKiuwanApiHttpsProxy] Connected to proxy server, doing the https call...');
+                
+                      // Establish TLS connection over the socket
+                const tlsSocket = tls.connect({
+                    socket,
+                    servername: p_host,
+                });
+
+                const agent = new AgentWithSocket(socket as net.Socket);  // Pass socket to custom agent
+
                 https.get({
-                    host: k_host, 
-                    path: k_path, 
+                    host: k_host,
+                    path: k_path,
                     auth: k_auth,
-                    socket: socket, // using a tunnel
-                    agent: false    // cannot use a default agent
+                    agent: agent
                 }, (res) => {
                     tl.debug ('[LS] [callKiuwanApiHttpsProxy] ...reading response ...');
                     let chunks = []
@@ -309,12 +344,13 @@ async function callKiuwanApiHttpsProxyNoAuth(options: https.RequestOptions, prox
         }).on('connect', (res, socket) => {
             if (res.statusCode === 200) { // connected to proxy server
                 tl.debug ('[KW_LS] Connected to proxy server, doing the https call...');
+                const agent = new AgentWithSocket(socket as net.Socket);  // Pass socket to custom agent
+
                 https.get({
-                    host: k_host, 
-                    path: k_path, 
+                    host: k_host,
+                    path: k_path,
                     auth: k_auth,
-                    socket: socket, // using a tunnel
-                    agent: false    // cannot use a default agent
+                    agent: agent
                 }, (res) => {
                     tl.debug ('[KW_LS] ...reading response ...');
                     let chunks = []
@@ -714,14 +750,14 @@ export async function processAgentProperties(agent_properties_file: string, prox
     // I write the file back to disk everything is messed up. But if the properties file follows the "ini"
     // format, the correct way of processing the file is by using the properties-reader library
     tl.debug(`[LS] Replacing values in file ` + agent_properties_file);
-    let propString = fs.readFileSync(agent_properties_file);
+    let propString = fs.readFileSync(agent_properties_file, 'utf8');
     propString = replaceProperty(propString, "proxy.host", property_proxy_host);
     propString = replaceProperty(propString, "proxy.port", property_proxy_port);
     propString = replaceProperty(propString, "proxy.authentication", property_proxy_auth);
     propString = replacePropertyWithHack(propString, "proxy.username", property_proxy_un);
     propString = replaceProperty(propString, "proxy.password", property_proxy_pw);
     propString = replaceProperty(propString, "proxy.protocol", property_proxy_protocol);
-    fs.writeFileSync(agent_properties_file,propString);
+    fs.writeFileSync(agent_properties_file,propString, 'utf8');
     tl.debug(`[LS] New proxy values written in file `+agent_properties_file);
 
     return;
